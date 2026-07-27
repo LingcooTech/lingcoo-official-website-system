@@ -1,0 +1,31 @@
+@import 'tailwindcss';
+
+/*
+ * 设计令牌（v1 内联版）。中性、克制，参照 MUJI / Apple 的留白与低饱和。
+ * v2 若需要与 admin-ui 共享，再抽成 @lingcoo/design-tokens 包。
+ */
+@theme {
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei',
+    sans-serif;
+
+  --color-paper: #fafaf9;
+  --color-surface: #ffffff;
+  --color-ink: #1c1917;
+  --color-ink-soft: #44403c;
+  --color-muted: #78716c;
+  --color-line: #e7e5e4;
+  /* 中性强调即深墨；拿到品牌色后替换此处即可全站生效 */
+  --color-accent: #1c1917;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}

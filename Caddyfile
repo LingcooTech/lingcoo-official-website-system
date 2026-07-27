@@ -1,0 +1,13 @@
+# 专用服务器上把 CADDY_SITE_ADDRESS 设为 lingcoo.com（含 www 可另加一行），
+# Caddy 会自动签发并续期 HTTPS 证书。默认 :80 便于本地 / 备案前调试。
+{$CADDY_SITE_ADDRESS::80} {
+  encode zstd gzip
+
+  header {
+    X-Content-Type-Options nosniff
+    X-Frame-Options DENY
+    Referrer-Policy strict-origin-when-cross-origin
+  }
+
+  reverse_proxy api:8090
+}

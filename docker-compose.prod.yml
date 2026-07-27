@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: ${LINGCOO_RUNTIME_IMAGE:-ghcr.io/futuredecade/lingcoo-official-website-system:latest}
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    environment:
+      APP_VERSION: ${APP_VERSION:-development}
+      FD_DOMAIN_BINDING_SOURCE: ${FD_DOMAIN_BINDING_SOURCE:-none}
+      FD_BOUND_HOST: ${FD_BOUND_HOST:-}
+    command: ['node', 'dist/server.js']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - '8090'
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "fetch(''http://127.0.0.1:8090/health'', { headers: process.env.FD_BOUND_HOST ? { host: process.env.FD_BOUND_HOST } : {} }).then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    ports:
+      - '${LINGCOO_HTTP_PORT:-80}:80'
+      - '${LINGCOO_HTTPS_PORT:-443}:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
