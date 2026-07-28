@@ -1,0 +1,13 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+node_modules
+public-web/node_modules
+admin-ui/node_modules
+dist
+public-web/dist
+admin-ui/dist
+npm-debug.log*
+
