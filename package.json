@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Lingcoo 公司官网系统：轻量化自建官网（对齐 FutureDecade 工程架构与 UI 标准，不依赖 headless WordPress）。",
+  "description": "Lingcoo 公司官网系统：轻量化自建官网（对齐 Lingcoo 工程架构与 UI 标准，不依赖 headless WordPress）。",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "dev:api": "npm run dev",

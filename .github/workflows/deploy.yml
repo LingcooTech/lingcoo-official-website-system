@@ -14,7 +14,7 @@ permissions:
 
 env:
   IMAGE_NAME: lingcoo-official-website-system
-  GHCR_IMAGE: ghcr.io/futuredecade/lingcoo-official-website-system
+  GHCR_IMAGE: ghcr.io/lingcootech/lingcoo-official-website-system
 
 jobs:
   build-and-push-acr:
@@ -184,4 +184,3 @@ jobs:
             sleep "${wait_s}"
             attempt=$((attempt + 1))
           done
-

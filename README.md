@@ -1,8 +1,8 @@
-# lingcoo-official-website-system
+# Lingcoo Official Website System
 
 Lingcoo 公司官网系统。域名：`lingcoo.com`。
 
-这是一个**轻量化自建官网**：对齐 FutureDecade 三套系统（`fd-core-stack` / `fd-edu-system` / `fd-retail-system`）的工程架构与 UI 标准，但**不依赖 headless WordPress**，也不引入第三方 CMS。官网内容不多，采用"自建轻量后台 + 静态预渲染前台"的形态。
+这是一个**轻量化自建官网**：对齐 Lingcoo 三套系统（`lingcoo-core-stack` / `lingcoo-edu-system` / `lingcoo-retail-system`）的工程架构与 UI 标准，但**不依赖 headless WordPress**，也不引入第三方 CMS。官网内容不多，采用"自建轻量后台 + 静态预渲染前台"的形态。
 
 - **前台 public-web**：React + Vite + Tailwind 4，`vite-react-ssg` 预渲染成真 HTML（保证 SEO / 首屏 / 备案审核可抓取）。
 - **后端 api**：Fastify 5 + TypeScript + PostgreSQL（Drizzle ORM）。单进程同时静态托管 `public-web/dist`（`/`）与 `admin-ui/dist`（`/admin/`）。

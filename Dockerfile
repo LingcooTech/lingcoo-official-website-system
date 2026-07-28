@@ -36,7 +36,7 @@ ENV NODE_ENV=production
 ENV APP_VERSION=${APP_VERSION}
 
 LABEL org.opencontainers.image.title="lingcoo-official-website-system"
-LABEL org.opencontainers.image.source="https://github.com/FutureDecade/lingcoo-official-website-system"
+LABEL org.opencontainers.image.source="https://github.com/LingcooTech/lingcoo-official-website-system"
 LABEL org.opencontainers.image.version="${APP_VERSION}"
 
 COPY --from=build /app/package*.json ./

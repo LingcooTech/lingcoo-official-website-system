@@ -16,7 +16,7 @@ services:
       retries: 10
 
   api:
-    image: ${LINGCOO_RUNTIME_IMAGE:-ghcr.io/futuredecade/lingcoo-official-website-system:latest}
+    image: ${LINGCOO_RUNTIME_IMAGE:-ghcr.io/lingcootech/lingcoo-official-website-system:latest}
     restart: unless-stopped
     init: true
     env_file:
