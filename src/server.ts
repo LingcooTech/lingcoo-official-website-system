@@ -4,7 +4,9 @@ import { loadEnv } from './lib/env.js';
 const env = loadEnv();
 const app = await buildApp(env);
 
-await app.listen({
-  host: env.API_HOST,
-  port: env.API_PORT,
-});
+try {
+  await app.listen({ host: env.API_HOST, port: env.API_PORT });
+} catch (error) {
+  app.log.error(error);
+  process.exitCode = 1;
+}

@@ -3,10 +3,15 @@ import pg from 'pg';
 
 import * as schema from './schema.js';
 
-export function createDb(databaseUrl: string) {
-  const pool = new pg.Pool({ connectionString: databaseUrl });
+export type Database = ReturnType<typeof drizzle<typeof schema>>;
+
+export interface DatabaseHandle {
+  db: Database;
+  pool: pg.Pool;
+}
+
+export function createDatabase(connectionString: string): DatabaseHandle {
+  const pool = new pg.Pool({ connectionString });
   const db = drizzle(pool, { schema });
   return { db, pool };
 }
-
-export type Db = ReturnType<typeof createDb>['db'];

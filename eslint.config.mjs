@@ -1,16 +1,13 @@
-import js from '@eslint/js';
+import eslint from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  js.configs.recommended,
+  { ignores: ['dist/**', 'admin-ui/**', 'public-web/**', 'packages/**'] },
+  eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    languageOptions: {
-      globals: globals.node,
-    },
-  },
-  {
-    ignores: ['**/dist/**', 'public-web/**', 'admin-ui/**'],
+    files: ['src/**/*.ts', 'test/**/*.ts', 'scripts/**/*.mjs'],
+    languageOptions: { globals: globals.node },
   },
 );

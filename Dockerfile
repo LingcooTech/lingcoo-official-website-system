@@ -1,56 +1,38 @@
-ARG NODE_BASE_IMAGE=registry.access.redhat.com/ubi9/nodejs-22
+ARG NODE_BASE_IMAGE=node:22-alpine
 
-FROM ${NODE_BASE_IMAGE} AS deps
-
-USER 0
+FROM ${NODE_BASE_IMAGE} AS dependencies
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json package-lock.json ./
+COPY admin-ui/package.json ./admin-ui/
+COPY public-web/package.json ./public-web/
+COPY packages/design-tokens/package.json ./packages/design-tokens/
+COPY packages/ui/package.json ./packages/ui/
 RUN npm ci
 
-COPY public-web/package*.json ./public-web/
-RUN cd public-web && npm ci
+FROM dependencies AS build
+COPY . .
+RUN npm run build:all
+RUN npm prune --omit=dev
 
-FROM deps AS build
-
-ARG VITE_API_BASE_URL=
-
-COPY tsconfig.json ./
-COPY drizzle.config.ts ./
-COPY src ./src
-COPY scripts ./scripts
-
-COPY public-web ./public-web
-RUN cd public-web && VITE_API_BASE_URL="${VITE_API_BASE_URL}" npm run build
-
-RUN npm run build
-
-FROM ${NODE_BASE_IMAGE} AS runtime
-
+FROM node:22-alpine AS runtime
 ARG APP_VERSION=development
+ENV NODE_ENV=production \
+    APP_VERSION=${APP_VERSION} \
+    API_HOST=0.0.0.0 \
+    API_PORT=8090
 
-USER 0
 WORKDIR /app
+RUN addgroup -S lingcoo && adduser -S lingcoo -G lingcoo
 
-ENV NODE_ENV=production
-ENV APP_VERSION=${APP_VERSION}
+COPY --from=build --chown=lingcoo:lingcoo /app/package.json /app/package-lock.json ./
+COPY --from=build --chown=lingcoo:lingcoo /app/node_modules ./node_modules
+COPY --from=build --chown=lingcoo:lingcoo /app/dist ./dist
+COPY --from=build --chown=lingcoo:lingcoo /app/drizzle ./drizzle
+COPY --from=build --chown=lingcoo:lingcoo /app/scripts ./scripts
+COPY --from=build --chown=lingcoo:lingcoo /app/admin-ui/dist ./admin-ui/dist
+COPY --from=build --chown=lingcoo:lingcoo /app/public-web/dist ./public-web/dist
 
-LABEL org.opencontainers.image.title="lingcoo-official-website-system"
-LABEL org.opencontainers.image.source="https://github.com/LingcooTech/lingcoo-official-website-system"
-LABEL org.opencontainers.image.version="${APP_VERSION}"
-
-COPY --from=build /app/package*.json ./
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/tsconfig.json ./
-COPY --from=build /app/drizzle.config.ts ./
-COPY --from=build /app/scripts ./scripts
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/public-web/dist ./public-web/dist
-
-RUN chown -R 1001:0 /app
-
-USER 1001
-
+USER lingcoo
 EXPOSE 8090
-
 CMD ["node", "dist/server.js"]
