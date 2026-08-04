@@ -15,6 +15,10 @@ permissions:
 env:
   IMAGE_NAME: lingcoo-official-website-system
   GHCR_IMAGE: ghcr.io/lingcootech/lingcoo-official-website-system
+  DEPLOY_HOST: 118.25.36.15
+  DEPLOY_USER: root
+  DEPLOY_PATH: /opt/lingcoo-official-website-system
+  DEPLOY_HEALTHCHECK_URL: https://www.lingcoo.com/ready
 
 jobs:
   build-and-push-acr:
@@ -168,10 +172,6 @@ jobs:
           ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
           ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
           DEPLOY_COMPOSE_FILE: docker-compose.prod.yml
-          DEPLOY_HEALTHCHECK_URL: ${{ secrets.DEPLOY_HEALTHCHECK_URL }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           IMAGE_TAG: ${{ needs.build-and-push-acr.outputs.image_tag }}
           LINGCOO_OFFICIAL_IMAGE_NAME: ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ env.IMAGE_NAME }}
         run: |

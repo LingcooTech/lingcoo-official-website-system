@@ -1,4 +1,8 @@
-{$CADDY_SITE_ADDRESS} {
+lingcoo.com {
+	redir https://www.lingcoo.com{uri} permanent
+}
+
+www.lingcoo.com {
 	encode zstd gzip
 
 	header {

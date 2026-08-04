@@ -49,7 +49,7 @@ INSERT INTO "presentation_profiles" (
   '#d7eee4',
   '#1f7a5a',
   'hello@lingcoo.com',
-  'https://lingcoo.com',
+  'https://www.lingcoo.com',
   'Lingcoo · 轻量、自有、可持续演进的数字系统',
   'Lingcoo 面向教育、零售与组织运营场景，设计并交付轻量、自有、可快速部署的数字系统。',
   '[{"label":"解决方案","href":"/#solutions"},{"label":"方法","href":"/#approach"},{"label":"内容","href":"/articles"},{"label":"联系","href":"/#contact"}]'::jsonb,

@@ -10,7 +10,7 @@ set -eu
 : "${IMAGE_TAG:?IMAGE_TAG is required}"
 
 DEPLOY_COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-docker-compose.prod.yml}"
-DEPLOY_HEALTHCHECK_URL="${DEPLOY_HEALTHCHECK_URL:-https://lingcoo.com/ready}"
+DEPLOY_HEALTHCHECK_URL="${DEPLOY_HEALTHCHECK_URL:-https://www.lingcoo.com/ready}"
 LINGCOO_OFFICIAL_RUNTIME_IMAGE="${LINGCOO_OFFICIAL_IMAGE_NAME}:${IMAGE_TAG}"
 APP_VERSION="${IMAGE_TAG}"
 
@@ -31,6 +31,39 @@ cleanup_docker_space() {
   docker container prune -f >/dev/null 2>&1 || true
   docker image prune -af >/dev/null 2>&1 || true
   docker builder prune -af >/dev/null 2>&1 || true
+}
+
+ensure_env_secret() {
+  secret_name="$1"
+  current_value="$(sed -n "s/^${secret_name}=//p" .env | tail -n 1)"
+  if [ "${#current_value}" -ge 32 ]; then
+    return 0
+  fi
+
+  if ! command -v openssl >/dev/null 2>&1; then
+    echo "openssl is required to initialize ${secret_name}"
+    exit 1
+  fi
+
+  secret_value="$(openssl rand -hex 32)"
+  temporary_env="$(mktemp "${DEPLOY_PATH}/.env.tmp.XXXXXX")"
+  awk -v key="${secret_name}" -v value="${secret_value}" '
+    BEGIN { replaced = 0 }
+    $0 ~ "^" key "=" {
+      if (!replaced) {
+        print key "=" value
+        replaced = 1
+      }
+      next
+    }
+    { print }
+    END {
+      if (!replaced) print key "=" value
+    }
+  ' .env > "${temporary_env}"
+  chmod 600 "${temporary_env}"
+  mv "${temporary_env}" .env
+  echo "Initialized ${secret_name} in the production environment"
 }
 
 login_acr() {
@@ -57,6 +90,14 @@ cd "${DEPLOY_PATH}"
 git fetch --prune origin
 git checkout main
 git reset --hard origin/main
+
+if [ ! -f .env ]; then
+  echo "Production environment file is missing: ${DEPLOY_PATH}/.env"
+  exit 1
+fi
+
+ensure_env_secret AUTH_JWT_SECRET
+ensure_env_secret SETTINGS_ENCRYPTION_KEY
 
 login_acr
 

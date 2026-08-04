@@ -12,8 +12,9 @@
 - Host: `118.25.36.15`
 - Domains: `lingcoo.com`, `www.lingcoo.com`
 - Deploy path: `/opt/lingcoo-official-website-system`
-- Health check: `https://lingcoo.com/ready`
-- Local HTTP upstream: `127.0.0.1:18094`
+- Canonical site: `https://www.lingcoo.com`
+- Health check: `https://www.lingcoo.com/ready`
+- Public ports: `80`, `443` (containerized Caddy)
 
 ## Required GitHub Secrets
 
@@ -21,20 +22,16 @@
 - `ACR_NAMESPACE`
 - `ACR_USERNAME`
 - `ACR_PASSWORD`
-- `DEPLOY_HOST`
-- `DEPLOY_USER`
-- `DEPLOY_PATH`
 - `DEPLOY_SSH_PRIVATE_KEY`
 - `DEPLOY_SSH_KNOWN_HOSTS`
-- `DEPLOY_HEALTHCHECK_URL`
 
-Project-specific values:
+The public deployment target is declared in `.github/workflows/deploy.yml`:
 
 ```text
 DEPLOY_HOST=118.25.36.15
 DEPLOY_USER=root
 DEPLOY_PATH=/opt/lingcoo-official-website-system
-DEPLOY_HEALTHCHECK_URL=https://lingcoo.com/ready
+DEPLOY_HEALTHCHECK_URL=https://www.lingcoo.com/ready
 ```
 
 ## Server bootstrap
@@ -67,18 +64,14 @@ AUTH_BOOTSTRAP_PASSWORD=<temporary-password-at-least-12-characters>
 AUTH_BOOTSTRAP_DISPLAY_NAME=系统所有者
 LOG_LEVEL=info
 METRICS_BEARER_TOKEN=<optional-at-least-24-random-characters>
-CADDY_SITE_ADDRESS=:80
-LINGCOO_OFFICIAL_HTTP_PORT=18094
-LINGCOO_OFFICIAL_HTTPS_PORT=18450
+LINGCOO_OFFICIAL_HTTP_PORT=80
+LINGCOO_OFFICIAL_HTTPS_PORT=443
 ```
 
 首个 Owner 创建后，从 `.env` 删除 `AUTH_BOOTSTRAP_PASSWORD`，并使用首次登录强制改密流程设置正式密码。
 
-宿主机 Nginx 终止 TLS 并代理到 `127.0.0.1:18094`：
+Caddy 直接监听公网 `80/443` 并自动管理两个域名的 TLS 证书。`www.lingcoo.com`
+是规范域名；`lingcoo.com` 永久重定向到 `www.lingcoo.com`。
 
-```bash
-sudo cp deploy/nginx.lingcoo.com.conf /etc/nginx/conf.d/lingcoo.com.conf
-sudo nginx -t
-sudo systemctl reload nginx
-sudo certbot --nginx -d lingcoo.com -d www.lingcoo.com --redirect
-```
+部署脚本会在生产 `.env` 缺失时一次性生成并持久化 `AUTH_JWT_SECRET` 与
+`SETTINGS_ENCRYPTION_KEY`，后续部署不会轮换这两个密钥。

@@ -37,7 +37,7 @@ export const defaultPresentation = {
   contactEmail: 'hello@lingcoo.com',
   contactPhone: null,
   contactAddress: null,
-  publicUrl: 'https://lingcoo.com',
+  publicUrl: 'https://www.lingcoo.com',
   seoTitle: 'Lingcoo · 轻量、自有、可持续演进的数字系统',
   seoDescription:
     'Lingcoo 面向教育、零售与组织运营场景，设计并交付轻量、自有、可快速部署的数字系统。',
