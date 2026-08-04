@@ -14,6 +14,19 @@ DEPLOY_HEALTHCHECK_URL="${DEPLOY_HEALTHCHECK_URL:-https://lingcoo.com/ready}"
 LINGCOO_OFFICIAL_RUNTIME_IMAGE="${LINGCOO_OFFICIAL_IMAGE_NAME}:${IMAGE_TAG}"
 APP_VERSION="${IMAGE_TAG}"
 
+if docker compose version >/dev/null 2>&1; then
+  compose() {
+    docker compose "$@"
+  }
+elif command -v docker-compose >/dev/null 2>&1; then
+  compose() {
+    docker-compose "$@"
+  }
+else
+  echo "Docker Compose is required (docker compose or docker-compose)"
+  exit 1
+fi
+
 cleanup_docker_space() {
   docker container prune -f >/dev/null 2>&1 || true
   docker image prune -af >/dev/null 2>&1 || true
@@ -50,19 +63,19 @@ login_acr
 export APP_VERSION
 export LINGCOO_OFFICIAL_RUNTIME_IMAGE
 
-docker compose -f "${DEPLOY_COMPOSE_FILE}" config >/dev/null
+compose -f "${DEPLOY_COMPOSE_FILE}" config >/dev/null
 cleanup_docker_space
-if ! docker compose -f "${DEPLOY_COMPOSE_FILE}" pull api; then
+if ! compose -f "${DEPLOY_COMPOSE_FILE}" pull api; then
   cleanup_docker_space
-  docker compose -f "${DEPLOY_COMPOSE_FILE}" pull api
+  compose -f "${DEPLOY_COMPOSE_FILE}" pull api
 fi
-docker compose -f "${DEPLOY_COMPOSE_FILE}" up -d postgres
-docker compose -f "${DEPLOY_COMPOSE_FILE}" run --rm \
+compose -f "${DEPLOY_COMPOSE_FILE}" up -d postgres
+compose -f "${DEPLOY_COMPOSE_FILE}" run --rm \
   api node scripts/run-migrations.mjs
-docker compose -f "${DEPLOY_COMPOSE_FILE}" up -d --remove-orphans api worker caddy
+compose -f "${DEPLOY_COMPOSE_FILE}" up -d --remove-orphans api worker caddy
 cleanup_docker_space
 
-worker_container_id="$(docker compose -f "${DEPLOY_COMPOSE_FILE}" ps -q worker)"
+worker_container_id="$(compose -f "${DEPLOY_COMPOSE_FILE}" ps -q worker)"
 if [ -z "${worker_container_id}" ]; then
   echo "worker container was not created"
   exit 1
@@ -77,7 +90,7 @@ while [ "${worker_attempt}" -le 24 ]; do
   fi
   if [ "${worker_attempt}" -eq 24 ]; then
     echo "worker health check failed: ${worker_status:-unknown}"
-    docker compose -f "${DEPLOY_COMPOSE_FILE}" logs --tail=100 worker || true
+    compose -f "${DEPLOY_COMPOSE_FILE}" logs --tail=100 worker || true
     exit 1
   fi
   worker_attempt=$((worker_attempt + 1))
