@@ -27,13 +27,16 @@ docker compose up -d postgres
 npm run db:migrate
 ```
 
-首次启动前，在 `.env` 临时配置：
+复制 `.env.example` 后会使用以下默认 Owner：
 
 ```text
-AUTH_BOOTSTRAP_EMAIL=<owner email>
-AUTH_BOOTSTRAP_PASSWORD=<temporary password, at least 12 characters>
+AUTH_BOOTSTRAP_EMAIL=admin@lingcoo.com
+AUTH_BOOTSTRAP_PASSWORD=Lingcoo@2026!
 AUTH_JWT_SECRET=<at least 32 characters>
 ```
+
+默认凭据只会在数据库中没有任何账号时创建 Owner，不会覆盖已有账号或密码。
+首次登录后必须立即修改临时密码，后续可在“账号与安全”中再次修改。
 
 随后分别启动：
 

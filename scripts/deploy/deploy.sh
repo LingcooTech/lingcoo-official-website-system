@@ -66,6 +66,56 @@ ensure_env_secret() {
   echo "Initialized ${secret_name} in the production environment"
 }
 
+ensure_env_default() {
+  setting_name="$1"
+  default_value="$2"
+  current_value="$(sed -n "s/^${setting_name}=//p" .env | tail -n 1)"
+  if [ -n "${current_value}" ]; then
+    return 0
+  fi
+
+  temporary_env="$(mktemp "${DEPLOY_PATH}/.env.tmp.XXXXXX")"
+  awk -v key="${setting_name}" -v value="${default_value}" '
+    BEGIN { replaced = 0 }
+    $0 ~ "^" key "=" {
+      if (!replaced) {
+        print key "=" value
+        replaced = 1
+      }
+      next
+    }
+    { print }
+    END {
+      if (!replaced) print key "=" value
+    }
+  ' .env > "${temporary_env}"
+  chmod 600 "${temporary_env}"
+  mv "${temporary_env}" .env
+  echo "Initialized ${setting_name} in the production environment"
+}
+
+ensure_bootstrap_owner() {
+  account_count="$(
+    compose -f "${DEPLOY_COMPOSE_FILE}" exec -T postgres sh -c \
+      'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "select count(*) from accounts"' |
+      tr -d '[:space:]'
+  )"
+  case "${account_count}" in
+    0)
+      ensure_env_default AUTH_BOOTSTRAP_EMAIL admin@lingcoo.com
+      ensure_env_default AUTH_BOOTSTRAP_PASSWORD 'Lingcoo@2026!'
+      ensure_env_default AUTH_BOOTSTRAP_DISPLAY_NAME '系统管理员'
+      ;;
+    '' | *[!0-9]*)
+      echo "Unable to determine the production account count"
+      exit 1
+      ;;
+    *)
+      echo "Existing accounts found; bootstrap owner initialization skipped"
+      ;;
+  esac
+}
+
 login_acr() {
   login_attempt=1
   login_max_attempts=5
@@ -113,6 +163,7 @@ fi
 compose -f "${DEPLOY_COMPOSE_FILE}" up -d postgres
 compose -f "${DEPLOY_COMPOSE_FILE}" run --rm \
   api node scripts/run-migrations.mjs
+ensure_bootstrap_owner
 compose -f "${DEPLOY_COMPOSE_FILE}" up -d --remove-orphans api worker caddy
 cleanup_docker_space
 

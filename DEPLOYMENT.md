@@ -59,16 +59,19 @@ SETTINGS_ENCRYPTION_KEY=<at-least-32-random-characters>
 AUTH_JWT_SECRET=<at-least-32-random-characters>
 AUTH_COOKIE_NAME=lingcoo_official_session
 AUTH_SESSION_TTL_HOURS=168
-AUTH_BOOTSTRAP_EMAIL=<first-owner-email>
-AUTH_BOOTSTRAP_PASSWORD=<temporary-password-at-least-12-characters>
-AUTH_BOOTSTRAP_DISPLAY_NAME=系统所有者
+AUTH_BOOTSTRAP_EMAIL=admin@lingcoo.com
+AUTH_BOOTSTRAP_PASSWORD=Lingcoo@2026!
+AUTH_BOOTSTRAP_DISPLAY_NAME=系统管理员
 LOG_LEVEL=info
 METRICS_BEARER_TOKEN=<optional-at-least-24-random-characters>
 LINGCOO_OFFICIAL_HTTP_PORT=80
 LINGCOO_OFFICIAL_HTTPS_PORT=443
 ```
 
-首个 Owner 创建后，从 `.env` 删除 `AUTH_BOOTSTRAP_PASSWORD`，并使用首次登录强制改密流程设置正式密码。
+部署脚本只会在账号表为空时，为上述三项中缺失或为空的配置写入默认值并创建
+Owner，不会覆盖已有账号或密码。首次登录会强制修改临时密码，后续也可在“账号与安全”中修改。
+生产环境完成首次改密后，可将 `.env` 中的 `AUTH_BOOTSTRAP_PASSWORD` 留空；之后的部署仍不会
+重置已有 Owner 的密码。
 
 Caddy 直接监听公网 `80/443` 并自动管理两个域名的 TLS 证书。`www.lingcoo.com`
 是规范域名；`lingcoo.com` 永久重定向到 `www.lingcoo.com`。
