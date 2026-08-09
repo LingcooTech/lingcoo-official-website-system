@@ -1,11 +1,12 @@
 .git
 .github
 node_modules
-admin-ui/node_modules
-public-web/node_modules
 dist
-admin-ui/dist
-public-web/dist
+apps/*/dist
+packages/*/dist
 .env
+.env.*
+!.env.example
 *.log
 coverage
+*.tsbuildinfo

@@ -7,14 +7,14 @@ on:
       - 'Dockerfile'
       - 'docker-compose*.yml'
       - 'package*.json'
-      - 'admin-ui/**'
-      - 'public-web/**'
-      - 'src/**'
-      - 'tsconfig.json'
+      - '.npmrc'
+      - 'apps/**'
+      - 'packages/**'
   workflow_dispatch:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   docker-build:
@@ -36,4 +36,6 @@ jobs:
           push: false
           build-args: |
             APP_VERSION=${{ github.event.pull_request.head.sha || github.sha }}
+          secrets: |
+            npm_token=${{ secrets.GITHUB_TOKEN }}
           tags: lingcoo-official-website-system:verify

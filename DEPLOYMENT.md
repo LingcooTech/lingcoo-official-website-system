@@ -2,9 +2,10 @@
 
 ## Flow
 
-`git push -> CI -> build image -> push ACR/GHCR -> server pull -> migrate -> start -> health check`
+`push main -> CI（空库迁移 + check + build）-> 构建镜像 -> ACR/GHCR -> 服务器迁移 -> API/Worker/Caddy -> /ready`
 
-生产服务器不从源码构建镜像。GitHub Runner 和生产主机都会对 ACR 登录进行有界重试，降低临时 TLS 超时造成的发布失败。
+生产服务器不安装 npm 包，也不从源码构建镜像。GitHub Runner 使用 `GITHUB_TOKEN` 和 `packages: read`
+安装 `@lingcootech/*`；Docker BuildKit 以 secret mount 传入令牌，不写入镜像层。
 
 ## Production
 
@@ -14,9 +15,19 @@
 - Deploy path: `/opt/lingcoo-official-website-system`
 - Canonical site: `https://www.lingcoo.com`
 - Health check: `https://www.lingcoo.com/ready`
-- Public ports: `80`, `443` (containerized Caddy)
+- Public ports: `80`, `443`（容器化 Caddy）
 
-## Required GitHub Secrets
+## Required GitHub access
+
+Repository Actions permissions:
+
+- `contents: read`
+- `packages: read` for CI/Docker dependency installation
+- `packages: write` for the optional GHCR mirror job
+
+The eight `@lingcootech/frame*` GitHub Packages must grant Actions access to this repository.
+
+Required repository secrets:
 
 - `ACR_REGISTRY`
 - `ACR_NAMESPACE`
@@ -25,15 +36,6 @@
 - `DEPLOY_SSH_PRIVATE_KEY`
 - `DEPLOY_SSH_KNOWN_HOSTS`
 
-The public deployment target is declared in `.github/workflows/deploy.yml`:
-
-```text
-DEPLOY_HOST=118.25.36.15
-DEPLOY_USER=root
-DEPLOY_PATH=/opt/lingcoo-official-website-system
-DEPLOY_HEALTHCHECK_URL=https://www.lingcoo.com/ready
-```
-
 ## Server bootstrap
 
 ```bash
@@ -41,9 +43,10 @@ git clone https://github.com/LingcooTech/lingcoo-official-website-system.git \
   /opt/lingcoo-official-website-system
 cd /opt/lingcoo-official-website-system
 cp .env.example .env
+chmod 600 .env
 ```
 
-Production `.env`:
+Production `.env` must provide:
 
 ```text
 NODE_ENV=production
@@ -54,27 +57,23 @@ CORS_ORIGIN=https://lingcoo.com,https://www.lingcoo.com
 DATABASE_URL=postgres://lingcoo_official:<password>@postgres:5432/lingcoo_official
 POSTGRES_DB=lingcoo_official
 POSTGRES_USER=lingcoo_official
-POSTGRES_PASSWORD=<password>
+POSTGRES_PASSWORD=<strong-password>
 SETTINGS_ENCRYPTION_KEY=<at-least-32-random-characters>
 AUTH_JWT_SECRET=<at-least-32-random-characters>
 AUTH_COOKIE_NAME=lingcoo_official_session
 AUTH_SESSION_TTL_HOURS=168
-AUTH_BOOTSTRAP_EMAIL=admin@lingcoo.com
-AUTH_BOOTSTRAP_PASSWORD=Lingcoo@2026!
-AUTH_BOOTSTRAP_DISPLAY_NAME=系统管理员
+AUTH_BOOTSTRAP_EMAIL=<owner-email>
+AUTH_BOOTSTRAP_PASSWORD=<unique-temporary-password>
+AUTH_BOOTSTRAP_DISPLAY_NAME=<owner-display-name>
 LOG_LEVEL=info
 METRICS_BEARER_TOKEN=<optional-at-least-24-random-characters>
 LINGCOO_OFFICIAL_HTTP_PORT=80
 LINGCOO_OFFICIAL_HTTPS_PORT=443
 ```
 
-部署脚本只会在账号表为空时，为上述三项中缺失或为空的配置写入默认值并创建
-Owner，不会覆盖已有账号或密码。首次登录会强制修改临时密码，后续也可在“账号与安全”中修改。
-生产环境完成首次改密后，可将 `.env` 中的 `AUTH_BOOTSTRAP_PASSWORD` 留空；之后的部署仍不会
-重置已有 Owner 的密码。
+部署脚本会在缺失时生成并持久化 `AUTH_JWT_SECRET` 与 `SETTINGS_ENCRYPTION_KEY`。空账号表首次部署必须显式
+提供 Bootstrap Owner 三项配置；脚本不会使用仓库内的固定生产密码。账号创建后，后续部署不会覆盖账号或
+密码，首次登录仍会强制修改临时密码。
 
-Caddy 直接监听公网 `80/443` 并自动管理两个域名的 TLS 证书。`www.lingcoo.com`
-是规范域名；`lingcoo.com` 永久重定向到 `www.lingcoo.com`。
-
-部署脚本会在生产 `.env` 缺失时一次性生成并持久化 `AUTH_JWT_SECRET` 与
-`SETTINGS_ENCRYPTION_KEY`，后续部署不会轮换这两个密钥。
+Caddy 直接监听公网 `80/443` 并自动管理两个域名的 TLS 证书；`lingcoo.com` 永久重定向到规范域名
+`www.lingcoo.com`。

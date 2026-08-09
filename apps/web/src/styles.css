@@ -1,0 +1,143 @@
+@import 'tailwindcss';
+
+:root {
+  color: #153229;
+  background: #f7faf8;
+}
+
+.official-product-panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  color: #e8fff4;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 1.25rem;
+  background: rgb(5 36 28 / 78%);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 20%);
+  backdrop-filter: blur(18px);
+}
+
+.official-product-panel > span,
+.official-section-heading > span,
+.official-approach span,
+.official-contact-grid > div > span {
+  font:
+    600 0.75rem/1.2 ui-monospace,
+    monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.official-product-panel strong {
+  font-size: 1.35rem;
+}
+.official-product-panel ul {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.official-product-panel li {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.official-section-heading {
+  max-width: 46rem;
+  margin-bottom: 2rem;
+}
+.official-section-heading h2,
+.official-approach h2,
+.official-contact-grid h2 {
+  margin: 0.55rem 0 0.8rem;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.05;
+}
+
+.official-solution-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+.official-solution-grid article {
+  display: grid;
+  gap: 0.8rem;
+  min-height: 17rem;
+  padding: 1.6rem;
+  border: 1px solid #dce8e2;
+  border-radius: 1rem;
+  background: #fff;
+}
+.official-solution-grid article span {
+  margin-top: auto;
+  font:
+    600 0.75rem ui-monospace,
+    monospace;
+  color: #1f7a5a;
+}
+.official-solution-grid h3 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+.official-solution-grid p {
+  margin: 0;
+  color: #536b62;
+  line-height: 1.7;
+}
+
+.official-approach {
+  display: flex;
+  justify-content: space-between;
+  gap: 3rem;
+  align-items: center;
+}
+.official-approach > div {
+  max-width: 48rem;
+}
+.official-approach > svg {
+  color: var(--site-accent, #1f7a5a);
+}
+
+.official-contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 4rem;
+  align-items: start;
+}
+.inquiry-form {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  color: #153229;
+  border-radius: 1.2rem;
+  background: #fff;
+}
+.inquiry-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.inquiry-form__consent {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  font-size: 0.9rem;
+}
+.inquiry-form__honeypot {
+  position: absolute;
+  left: -10000px;
+}
+
+@media (max-width: 760px) {
+  .official-solution-grid,
+  .official-contact-grid,
+  .inquiry-form__grid {
+    grid-template-columns: 1fr;
+  }
+  .official-approach > svg {
+    display: none;
+  }
+}

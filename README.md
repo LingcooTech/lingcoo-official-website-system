@@ -1,49 +1,64 @@
-# Lingcoo Official Website System
+# LingcooTech Official Website System
 
-Lingcoo 公司官网、内容发布与联系线索运营系统，生产域名为 `lingcoo.com`。
+LingcooTech 官网、内容发布与联系线索运营系统。它是 Lingcoo Frame 的第一个独立 Consumer，生产域名为
+`lingcoo.com`。
 
-项目基于 `lingcoo-system-base-framework@0.1.0`（commit `9aa93e3`）派生。frame 提供认证、权限、CMS、媒体资源、品牌设置、审计、通知、任务、可观测性和部署基础；官网仓库只维护官网内容、公开体验和领域模块。
+这个仓库不包含 Frame 源码。认证、权限、设置、审计、通知、任务、资源、CMS、后台壳和公开站点壳均从
+GitHub Packages 安装的 `@lingcootech/*@0.7.1` 提供；仓库只维护官网领域扩展和三个组合入口。
+
+## 仓库结构
+
+```text
+apps/system                         API、Worker、迁移与扩展组合
+apps/admin                          Frame 后台 + CMS + 官网运营页面
+apps/web                            Frame 公开站点 + CMS + 官网首页
+packages/official-site-extension   官网 Manifest、迁移、咨询服务、API 和 UI
+```
+
+官网扩展只有一个领域迁移 `official-site/0001_initial.sql`。Frame 与 CMS 迁移来自安装包，并由
+`defineSystem()` 根据依赖拓扑统一执行。
 
 ## 当前能力
 
-- 官网首页：行业解决方案、交付方法与联系转化页面
-- 公开站点：响应式站点壳、品牌设置、SEO、Sitemap、Robots、404/500
-- 内容运营：通用页面与文章、Markdown、版本、预览、定时发布和重定向
-- 联系线索：公开提交、隐私同意、蜜罐、限流、状态、负责人和内部备注
-- 运营后台：内容、媒体资源、联系线索、品牌、通知、账号权限和系统运行入口
-- 运营保障：事务 Outbox、站内通知、审计记录、Worker、健康检查和结构化日志
-- 自部署：PostgreSQL、Docker Compose、Caddy、ACR/GHCR 和 GitHub Actions
+- 官网首页：解决方案、交付方法和联系转化页面
+- CMS：页面、文章、版本、预览、发布、SEO 和 Sitemap
+- 联系线索：公开提交、隐私同意、蜜罐、敏感端点限流、分配、状态和内部备注
+- 运营后台：直接复用 Frame 默认后台与 CMS，只添加官网概览和联系线索页面
+- 运行能力：审计、Outbox、通知 Worker、健康检查、结构化日志与静态站点托管
+- 部署：PostgreSQL 17、Docker Compose、Caddy、ACR/GHCR 和 GitHub Actions
 
-派生来源、运行面和领域模块记录在 [`lingcoo.system.json`](lingcoo.system.json)。
+## 安装 Frame 包
+
+Frame 包位于 GitHub Packages。开发者令牌需要 `read:packages`；不要把令牌写进 `.npmrc` 或提交到仓库。
+
+```bash
+gh auth refresh -h github.com -s read:packages
+NODE_AUTH_TOKEN="$(gh auth token)" npm install
+```
+
+仓库内 `.npmrc` 只声明 `@lingcootech` registry，并从 `NODE_AUTH_TOKEN` 读取凭据。CI 使用权限为
+`packages: read` 的仓库 `GITHUB_TOKEN`，Docker 通过 BuildKit secret 安装依赖，令牌不会进入镜像层。
 
 ## 本地开发
 
-要求 Node.js 22+、PostgreSQL 17+。推荐使用 Docker Compose 启动数据库：
+要求 Node.js 22+、PostgreSQL 17+ 和 Docker。
 
 ```bash
 cp .env.example .env
-npm install
+# 在 .env 中设置至少 32 字符的 AUTH_JWT_SECRET、SETTINGS_ENCRYPTION_KEY，
+# 并为首次启动设置自己的 AUTH_BOOTSTRAP_EMAIL / AUTH_BOOTSTRAP_PASSWORD。
 docker compose up -d postgres
+npm run build:packages
+npm run build:system
 npm run db:migrate
 ```
 
-复制 `.env.example` 后会使用以下默认 Owner：
-
-```text
-AUTH_BOOTSTRAP_EMAIL=admin@lingcoo.com
-AUTH_BOOTSTRAP_PASSWORD=Lingcoo@2026!
-AUTH_JWT_SECRET=<at least 32 characters>
-```
-
-默认凭据只会在数据库中没有任何账号时创建 Owner，不会覆盖已有账号或密码。
-首次登录后必须立即修改临时密码，后续可在“账号与安全”中再次修改。
-
-随后分别启动：
+分别启动四个运行面：
 
 ```bash
 npm run dev:api
 npm run dev:worker
-npm run dev:public
+npm run dev:web
 npm run dev:admin
 ```
 
@@ -52,23 +67,27 @@ npm run dev:admin
 - API：<http://localhost:8090>
 - PostgreSQL：`127.0.0.1:5438`
 
+Bootstrap Owner 只会在账号表为空时创建，并在首次登录后强制修改临时密码。
+
 ## 质量检查
 
 ```bash
 npm run check
 npm run build:all
+npm audit --omit=dev --audit-level=high
 ```
 
-数据库集成测试需要 `DATABASE_URL` 指向已经执行全部迁移的 PostgreSQL。CI 会创建真实 PostgreSQL、执行迁移，然后运行完整检查和构建。
+CI 会创建真实空 PostgreSQL，执行 Frame、CMS、官网扩展的全部迁移，然后检查类型、测试、lint 和生产构建。
 
-## 领域边界
+## 开发边界
 
-官网领域模块位于 `src/modules/inquiries`，包含公开提交、运营查询、状态更新、审计和事件策略。CMS、品牌、资源、权限等继续由 frame 基础模块维护，不在官网领域内重复实现。
-
-新增官网业务时按完整垂直切片交付：
+新增官网业务时，在 `packages/official-site-extension` 内按完整垂直切片交付：
 
 ```text
-Migration -> Schema -> Service -> API -> Permission -> Audit/Event -> Admin/Public UI -> Test
+Manifest -> Migration -> Schema -> Service -> API -> Permission -> Audit/Event -> Admin/Web UI -> Test
 ```
+
+应用不得从 Frame Git 仓库相对引用文件，也不得复制 Frame 页面、数据库 Schema 或基础模块。需要新的通用
+能力时，先在 Frame 中形成包导出并发布新版本，再升级这里的精确依赖版本；官网专属能力留在本仓库。
 
 生产部署说明见 [`DEPLOYMENT.md`](DEPLOYMENT.md)。
