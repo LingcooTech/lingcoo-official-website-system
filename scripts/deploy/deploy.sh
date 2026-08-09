@@ -11,6 +11,7 @@ set -eu
 
 DEPLOY_COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-docker-compose.prod.yml}"
 DEPLOY_HEALTHCHECK_URL="${DEPLOY_HEALTHCHECK_URL:-https://www.lingcoo.com/ready}"
+DATABASE_RESET_CONFIRMATION="${DATABASE_RESET_CONFIRMATION:-}"
 LINGCOO_OFFICIAL_RUNTIME_IMAGE="${LINGCOO_OFFICIAL_IMAGE_NAME}:${IMAGE_TAG}"
 APP_VERSION="${IMAGE_TAG}"
 
@@ -31,6 +32,57 @@ cleanup_docker_space() {
   docker container prune -f >/dev/null 2>&1 || true
   docker image prune -af >/dev/null 2>&1 || true
   docker builder prune -af >/dev/null 2>&1 || true
+}
+
+reset_official_database() {
+  if [ -z "${DATABASE_RESET_CONFIRMATION}" ]; then
+    return 0
+  fi
+  if [ "${DATABASE_RESET_CONFIRMATION}" != "RESET_OFFICIAL_DATABASE" ]; then
+    echo "Refusing database reset: confirmation phrase does not match"
+    exit 1
+  fi
+
+  postgres_container_id="$(compose -f "${DEPLOY_COMPOSE_FILE}" ps -q postgres)"
+  if [ -z "${postgres_container_id}" ]; then
+    echo "Refusing database reset: the official website postgres container was not found"
+    exit 1
+  fi
+
+  expected_project="$(basename "${DEPLOY_PATH}")"
+  container_project="$(
+    docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' \
+      "${postgres_container_id}"
+  )"
+  if [ "${container_project}" != "${expected_project}" ]; then
+    echo "Refusing database reset: postgres belongs to ${container_project:-<unknown>}, expected ${expected_project}"
+    exit 1
+  fi
+
+  postgres_volume="$(
+    docker inspect --format '{{range .Mounts}}{{if eq .Destination "/var/lib/postgresql/data"}}{{.Name}}{{end}}{{end}}' \
+      "${postgres_container_id}"
+  )"
+  case "${postgres_volume}" in
+    *_postgres_data) ;;
+    *)
+      echo "Refusing database reset: unexpected postgres volume ${postgres_volume:-<empty>}"
+      exit 1
+      ;;
+  esac
+  volume_project="$(
+    docker volume inspect --format '{{index .Labels "com.docker.compose.project"}}' \
+      "${postgres_volume}"
+  )"
+  if [ "${volume_project}" != "${expected_project}" ]; then
+    echo "Refusing database reset: volume belongs to ${volume_project:-<unknown>}, expected ${expected_project}"
+    exit 1
+  fi
+
+  compose -f "${DEPLOY_COMPOSE_FILE}" stop api worker postgres || true
+  compose -f "${DEPLOY_COMPOSE_FILE}" rm -f api worker postgres || true
+  docker volume rm "${postgres_volume}"
+  echo "Removed official website postgres volume ${postgres_volume}; initializing from zero"
 }
 
 ensure_env_secret() {
@@ -136,6 +188,7 @@ if ! compose -f "${DEPLOY_COMPOSE_FILE}" pull api; then
   cleanup_docker_space
   compose -f "${DEPLOY_COMPOSE_FILE}" pull api
 fi
+reset_official_database
 compose -f "${DEPLOY_COMPOSE_FILE}" up -d postgres
 compose -f "${DEPLOY_COMPOSE_FILE}" run --rm \
   api node apps/system/dist/migrate.js
