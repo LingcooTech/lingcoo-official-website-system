@@ -35,7 +35,9 @@
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "4.62.3",
-    "@rollup/rollup-linux-x64-musl": "4.62.3"
+    "@rollup/rollup-linux-x64-musl": "4.62.3",
+    "lightningcss-linux-x64-gnu": "1.32.0",
+    "lightningcss-linux-x64-musl": "1.32.0"
   },
   "engines": {
     "node": ">=22.0.0"
