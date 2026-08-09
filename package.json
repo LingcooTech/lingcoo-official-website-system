@@ -21,7 +21,7 @@
     "build:all": "npm run build:packages && npm run build:system && npm run build:admin && npm run build:web",
     "start": "npm run start --workspace @lingcootech/official-system",
     "start:worker": "npm run start:worker --workspace @lingcootech/official-system",
-    "db:migrate": "npm run migrate --workspace @lingcootech/official-system",
+    "db:migrate": "npm run build:packages && npm run migrate --workspace @lingcootech/official-system",
     "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
     "test": "npm run build:packages && npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
