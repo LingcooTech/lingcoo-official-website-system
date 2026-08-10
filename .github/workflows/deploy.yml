@@ -187,6 +187,12 @@ jobs:
             printf '%q' "$1"
           }
 
+          remote_runner='deploy_script="$(mktemp /tmp/lingcoo-official-deploy.XXXXXX)"
+          trap '\''rm -f "${deploy_script}"'\'' EXIT
+          cat > "${deploy_script}"
+          chmod 700 "${deploy_script}"
+          sh "${deploy_script}"'
+
           remote_cmd="ACR_PASSWORD=$(escape "${ACR_PASSWORD}") \
              ACR_REGISTRY=$(escape "${ACR_REGISTRY}") \
              ACR_USERNAME=$(escape "${ACR_USERNAME}") \
@@ -196,7 +202,7 @@ jobs:
              DEPLOY_PATH=$(escape "${DEPLOY_PATH}") \
              IMAGE_TAG=$(escape "${IMAGE_TAG}") \
              LINGCOO_OFFICIAL_IMAGE_NAME=$(escape "${LINGCOO_OFFICIAL_IMAGE_NAME}") \
-             sh -s"
+             sh -c $(escape "${remote_runner}")"
 
           ssh_opts="-o BatchMode=yes -o ConnectTimeout=20 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
           attempt=1
