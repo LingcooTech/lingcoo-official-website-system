@@ -5,6 +5,6 @@ import { officialSiteExtension } from '@lingcootech/official-site-extension';
 
 export const officialSystem = defineSystem({
   id: 'lingcoo-official-website',
-  version: '0.2.0',
+  version: '0.3.0',
   extensions: [frameCoreExtension, frameCmsExtension, officialSiteExtension],
 });

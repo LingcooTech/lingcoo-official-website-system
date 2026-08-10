@@ -38,7 +38,7 @@ const officialDefinition = defineExtension({
 
 export const adminSystem = defineSystem({
   id: 'lingcoo-official-admin',
-  version: '0.2.0',
+  version: '0.3.0',
   extensions: [frameDefinition, cmsDefinition, officialDefinition],
 });
 

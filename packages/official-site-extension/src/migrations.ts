@@ -17,6 +17,13 @@ export const officialSiteMigrationSource = defineMigrationSource({
       id: '0001_initial.sql',
       sql: readFileSync(new URL('../migrations/0001_initial.sql', import.meta.url), 'utf8'),
     },
+    {
+      id: '0002_official_identity.sql',
+      sql: readFileSync(
+        new URL('../migrations/0002_official_identity.sql', import.meta.url),
+        'utf8',
+      ),
+    },
   ],
 });
 

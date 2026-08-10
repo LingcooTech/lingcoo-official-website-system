@@ -1,6 +1,6 @@
 import { FRAME_VERSION, type ExtensionManifest } from '@lingcootech/frame-extension-sdk';
 
-export const OFFICIAL_SITE_VERSION = '0.2.0';
+export const OFFICIAL_SITE_VERSION = '0.3.0';
 
 export const officialSiteManifest = {
   id: 'official-site',
@@ -21,7 +21,7 @@ export const officialSiteManifest = {
   worker: { subscriptions: ['inquiry.created'] },
   migrations: {
     sourceId: 'official-site',
-    migrations: [{ id: '0001_initial.sql' }],
+    migrations: [{ id: '0001_initial.sql' }, { id: '0002_official_identity.sql' }],
   },
   admin: {
     routes: [

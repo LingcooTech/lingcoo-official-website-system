@@ -45,6 +45,10 @@
   align-items: center;
 }
 
+.official-hero-secondary {
+  color: #153229 !important;
+}
+
 .official-section-heading {
   max-width: 46rem;
   margin-bottom: 2rem;
@@ -107,6 +111,89 @@
   gap: 4rem;
   align-items: start;
 }
+
+.official-contact-email {
+  display: inline-flex;
+  gap: 0.55rem;
+  align-items: center;
+  margin-top: 1rem;
+  color: #d7eee4 !important;
+  font-weight: 650;
+}
+
+.official-footer {
+  color: #dfeae4;
+  background: #0b1813;
+  border-top: 1px solid rgb(215 238 228 / 10%);
+}
+
+.official-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.official-footer__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(8rem, 0.65fr) minmax(12rem, 0.85fr);
+  gap: 3rem;
+  padding-block: 3.5rem;
+}
+
+.official-footer__brand p {
+  max-width: 31rem;
+  margin: 1rem 0 0;
+  color: #8fa399;
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.official-footer__navigation,
+.official-footer__contact {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+  font-size: 0.9rem;
+}
+
+.official-footer__navigation a,
+.official-footer__contact a {
+  color: #b8c9c0;
+}
+
+.official-footer__navigation a:hover,
+.official-footer__contact a:hover,
+.official-footer__legal a:hover {
+  color: #fff;
+}
+
+.official-footer__contact > span {
+  color: #71857a;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.official-footer__contact a {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.official-footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.5rem;
+  align-items: center;
+  padding-block: 1.25rem;
+  color: #708379;
+  font-size: 0.78rem;
+  border-top: 1px solid rgb(215 238 228 / 10%);
+}
+
+.official-footer__legal a {
+  color: #91a69b;
+}
 .inquiry-form {
   display: grid;
   gap: 1rem;
@@ -134,8 +221,19 @@
 @media (max-width: 760px) {
   .official-solution-grid,
   .official-contact-grid,
+  .official-footer__main,
   .inquiry-form__grid {
     grid-template-columns: 1fr;
+  }
+
+  .official-footer__main {
+    gap: 2rem;
+    padding-block: 2.8rem;
+  }
+
+  .official-footer__legal {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .official-approach > svg {
     display: none;

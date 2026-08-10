@@ -1,10 +1,10 @@
-# LingcooTech Official Website System
+# 灵可智能（LingcooTech）官网系统
 
-LingcooTech 官网、内容发布与联系线索运营系统。它是 Lingcoo Frame 的第一个独立 Consumer，生产域名为
+灵可智能官网、内容发布与联系线索运营系统。它是 Lingcoo Frame 的第一个独立 Consumer，生产域名为
 `lingcoo.com`。
 
 这个仓库不包含 Frame 源码。认证、权限、设置、审计、通知、任务、资源、CMS、后台壳和公开站点壳均从
-GitHub Packages 安装的 `@lingcootech/*@0.7.1` 提供；仓库只维护官网领域扩展和三个组合入口。
+GitHub Packages 安装的 `@lingcootech/*@0.7.2` 提供；仓库只维护官网领域扩展和三个组合入口。
 
 ## 仓库结构
 
@@ -15,12 +15,12 @@ apps/web                            Frame 公开站点 + CMS + 官网首页
 packages/official-site-extension   官网 Manifest、迁移、咨询服务、API 和 UI
 ```
 
-官网扩展只有一个领域迁移 `official-site/0001_initial.sql`。Frame 与 CMS 迁移来自安装包，并由
-`defineSystem()` 根据依赖拓扑统一执行。
+官网扩展包含领域初始化和官方身份/备案配置迁移。Frame 与 CMS 迁移来自安装包，并由 `defineSystem()`
+根据依赖拓扑统一执行。
 
 ## 当前能力
 
-- 官网首页：解决方案、交付方法和联系转化页面
+- 官网首页：固定顶部/底部导航、解决方案、关于、联系转化和工信部备案信息
 - CMS：页面、文章、版本、预览、发布、SEO 和 Sitemap
 - 联系线索：公开提交、隐私同意、蜜罐、敏感端点限流、分配、状态和内部备注
 - 运营后台：直接复用 Frame 默认后台与 CMS，只添加官网概览和联系线索页面

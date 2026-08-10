@@ -1,8 +1,8 @@
 import { type WebRouteContext, defineWebExtension } from '@lingcootech/frame-web';
-import { Hero, Section } from '@lingcootech/frame-web/layout';
+import { Container, Hero, Section } from '@lingcootech/frame-web/layout';
 import type { PublicPresentation } from '@lingcootech/frame-web/presentation';
 import { SeoHead } from '@lingcootech/frame-web/seo';
-import { SiteShell } from '@lingcootech/frame-web/site';
+import { SiteBrand, SiteHeader } from '@lingcootech/frame-web/site';
 import { Alert } from '@lingcootech/frame-ui/alert';
 import { Button } from '@lingcootech/frame-ui/button';
 import { Checkbox } from '@lingcootech/frame-ui/checkbox';
@@ -14,11 +14,23 @@ import {
   Building2,
   CheckCircle2,
   GraduationCap,
+  Mail,
   Send,
   Store,
   Workflow,
 } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
+
+import {
+  OFFICIAL_SITE_ENGLISH_NAME,
+  OFFICIAL_SITE_ICP_NUMBER,
+  OFFICIAL_SITE_ICP_URL,
+  OFFICIAL_SITE_LEGAL_ENTITY,
+  OFFICIAL_SITE_NAME,
+  officialFooterNavigation,
+  officialHeaderNavigation,
+  resolveOfficialPresentation,
+} from './site-content.js';
 
 export interface OfficialWebContext {
   presentation: PublicPresentation | null;
@@ -103,7 +115,7 @@ function InquiryForm() {
       </div>
       <label className="inquiry-form__consent">
         <Checkbox checked={consent} onCheckedChange={(checked) => setConsent(checked === true)} />
-        <span>我同意 LingcooTech 仅将以上信息用于本次咨询沟通和后续联系。</span>
+        <span>我同意灵可智能仅将以上信息用于本次咨询沟通和后续联系。</span>
       </label>
       <Button
         disabled={!consent}
@@ -141,17 +153,79 @@ const solutions = [
   },
 ];
 
-function HomePage({ context }: WebRouteContext<OfficialWebContext>) {
+function OfficialFooter({ presentation }: { presentation: PublicPresentation }) {
   return (
-    <SiteShell presentation={context.presentation} headerOverlay headerTone="dark">
+    <footer className="official-footer">
+      <Container>
+        <div className="official-footer__main">
+          <div className="official-footer__brand">
+            <SiteBrand presentation={presentation} />
+            <p>专注于企业数字系统、行业应用与软件产品的设计、开发和持续交付。</p>
+          </div>
+          <nav aria-label="页脚导航" className="official-footer__navigation">
+            {officialFooterNavigation.map((item) => (
+              <a href={item.href} key={item.href}>
+                {item.label}
+              </a>
+            ))}
+          </nav>
+          <div className="official-footer__contact">
+            <span>联系我们</span>
+            <a href="mailto:hello@lingcoo.com">
+              <Mail aria-hidden size={16} />
+              hello@lingcoo.com
+            </a>
+          </div>
+        </div>
+        <div className="official-footer__legal">
+          <span>© 2026 {OFFICIAL_SITE_NAME}</span>
+          <span>{OFFICIAL_SITE_LEGAL_ENTITY}</span>
+          <a href={OFFICIAL_SITE_ICP_URL} rel="noreferrer" target="_blank">
+            {OFFICIAL_SITE_ICP_NUMBER}
+          </a>
+        </div>
+      </Container>
+    </footer>
+  );
+}
+
+function OfficialSiteShell({
+  children,
+  presentation,
+}: {
+  children: ReactNode;
+  presentation: PublicPresentation;
+}) {
+  return (
+    <div className="public-site-shell public-site-shell--dark">
+      <a className="site-skip-link" href="#main-content">
+        跳至主要内容
+      </a>
+      <SiteHeader
+        adminHref={null}
+        navigation={officialHeaderNavigation}
+        overlay
+        presentation={presentation}
+        tone="dark"
+      />
+      <main id="main-content">{children}</main>
+      <OfficialFooter presentation={presentation} />
+    </div>
+  );
+}
+
+function HomePage({ context }: WebRouteContext<OfficialWebContext>) {
+  const presentation = resolveOfficialPresentation(context.presentation);
+  return (
+    <OfficialSiteShell presentation={presentation}>
       <SeoHead
         canonicalPath="/"
-        description="面向教育、零售与组织运营场景的数字系统设计与交付。"
-        presentation={context.presentation}
-        title="让复杂系统，清晰生长"
+        description="灵可智能专注于企业数字系统、行业应用与软件产品的设计、开发和持续交付。"
+        presentation={presentation}
+        title="灵可智能 · 让复杂系统，清晰生长"
       />
       <Hero
-        eyebrow="LingcooTech · Product Engineering"
+        eyebrow={`${OFFICIAL_SITE_NAME} · ${OFFICIAL_SITE_ENGLISH_NAME}`}
         title={
           <>
             让复杂系统，
@@ -159,39 +233,41 @@ function HomePage({ context }: WebRouteContext<OfficialWebContext>) {
             清晰生长。
           </>
         }
-        description="从稳定的 Frame 地基出发，为教育、零售与组织运营构建可拥有、可演进的数字系统。"
+        description="从稳定的软件地基出发，为教育、零售与组织运营构建可拥有、可演进的数字系统。"
         actions={
           <>
             <Button asChild size="lg" trailingIcon={<ArrowRight size={16} />}>
               <a href="#contact">沟通项目</a>
             </Button>
             <Button asChild size="lg" variant="secondary">
-              <a href="#solutions">查看解决方案</a>
+              <a className="official-hero-secondary" href="#services">
+                了解我们的服务
+              </a>
             </Button>
           </>
         }
         aside={
           <div className="official-product-panel">
-            <span>delivery.model</span>
-            <strong>Frame + Domain Extension</strong>
+            <span>Product engineering</span>
+            <strong>从需求到可持续运行</strong>
             <ul>
               <li>
                 <CheckCircle2 size={16} />
-                独立仓库与部署
+                独立部署
               </li>
               <li>
                 <CheckCircle2 size={16} />
-                版本化基础能力
+                数据自主
               </li>
               <li>
                 <CheckCircle2 size={16} />
-                业务代码保持纯净
+                持续升级
               </li>
             </ul>
           </div>
         }
       />
-      <Section id="solutions" tone="raised">
+      <Section id="services" tone="raised">
         <div className="official-section-heading">
           <span>Solutions</span>
           <h2>围绕真实工作流交付系统</h2>
@@ -208,14 +284,14 @@ function HomePage({ context }: WebRouteContext<OfficialWebContext>) {
           ))}
         </div>
       </Section>
-      <Section id="approach" tone="base">
+      <Section id="about" tone="base">
         <div className="official-approach">
           <div>
-            <span>Approach</span>
-            <h2>地基统一，业务独立</h2>
+            <span>About us</span>
+            <h2>从可靠地基出发，长期建设数字产品</h2>
             <p>
-              Frame 提供身份、权限、设置、审计、资产、通知、CMS
-              与运行保障；每个应用只维护自己的领域扩展和交付节奏。
+              灵可智能位于山东青岛，专注于企业数字系统、行业应用与软件产品的设计、开发和持续交付。
+              我们以稳定的技术底座承载不同业务，让产品能够独立部署、持续升级并长期演进。
             </p>
           </div>
           <Workflow size={72} />
@@ -229,11 +305,15 @@ function HomePage({ context }: WebRouteContext<OfficialWebContext>) {
             <p>
               介绍业务场景、使用对象和期望上线时间，我们会从边界、风险与最小可交付范围开始讨论。
             </p>
+            <a className="official-contact-email" href="mailto:hello@lingcoo.com">
+              <Mail aria-hidden size={17} />
+              hello@lingcoo.com
+            </a>
           </div>
           <InquiryForm />
         </div>
       </Section>
-    </SiteShell>
+    </OfficialSiteShell>
   );
 }
 
@@ -243,8 +323,8 @@ export const officialSiteWebExtension = defineWebExtension<OfficialWebContext>({
     {
       id: 'official.home',
       resolve: () => ({
-        title: 'LingcooTech · 让复杂系统，清晰生长',
-        description: '面向教育、零售与组织运营场景的数字系统设计与交付。',
+        title: '灵可智能 · 让复杂系统，清晰生长',
+        description: '灵可智能专注于企业数字系统、行业应用与软件产品的设计、开发和持续交付。',
         canonicalPath: '/',
       }),
     },
