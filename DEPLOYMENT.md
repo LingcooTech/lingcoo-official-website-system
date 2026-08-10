@@ -33,7 +33,8 @@ this repository.
 Use the `Frame Upgrade` workflow with an exact target version. It updates the complete dependency set and lockfile,
 runs a clean PostgreSQL migration, verifies version consistency, tests and builds, then opens a pull request. Production
 migrations still run only after that pull request passes normal CI and is merged; the workflow never connects to the
-production database.
+production database. Production deployment records account, inquiry, CMS content and migration-ledger counts before
+and after migration, and aborts if any protected count decreases.
 
 Required repository secrets:
 
