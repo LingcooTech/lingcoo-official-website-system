@@ -25,7 +25,15 @@ Repository Actions permissions:
 - `packages: read` for CI/Docker dependency installation
 - `packages: write` for the optional GHCR mirror job
 
-The eight `@lingcootech/frame*` GitHub Packages must grant Actions access to this repository.
+The eight `@lingcootech/frame*` runtime packages and `@lingcootech/create-frame-app` must grant Actions access to
+this repository.
+
+## Frame upgrades
+
+Use the `Frame Upgrade` workflow with an exact target version. It updates the complete dependency set and lockfile,
+runs a clean PostgreSQL migration, verifies version consistency, tests and builds, then opens a pull request. Production
+migrations still run only after that pull request passes normal CI and is merged; the workflow never connects to the
+production database.
 
 Required repository secrets:
 
