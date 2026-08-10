@@ -144,6 +144,79 @@ ensure_bootstrap_owner() {
   esac
 }
 
+protected_table_count() {
+  table_name="$1"
+  table_exists="$(
+    compose -f "${DEPLOY_COMPOSE_FILE}" exec -T postgres sh -c \
+      "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -tAc \"select to_regclass('public.${table_name}') is not null\"" |
+      tr -d '[:space:]'
+  )"
+  if [ "${table_exists}" != "t" ]; then
+    printf '0'
+    return 0
+  fi
+  compose -f "${DEPLOY_COMPOSE_FILE}" exec -T postgres sh -c \
+    "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -tAc \"select count(*) from ${table_name}\"" |
+    tr -d '[:space:]'
+}
+
+protected_data_snapshot() {
+  printf '%s|%s|%s|%s' \
+    "$(protected_table_count accounts)" \
+    "$(protected_table_count inquiries)" \
+    "$(protected_table_count cms_content_entries)" \
+    "$(protected_table_count framework_migrations)"
+}
+
+parse_protected_data_snapshot() {
+  snapshot="$1"
+  prefix="$2"
+  case "${snapshot}" in
+    '' | *[!0-9|]*)
+      echo "Invalid ${prefix} production data snapshot: ${snapshot:-<empty>}"
+      exit 1
+      ;;
+  esac
+  previous_ifs="${IFS}"
+  IFS='|'
+  set -- ${snapshot}
+  IFS="${previous_ifs}"
+  if [ "$#" -ne 4 ]; then
+    echo "Invalid ${prefix} production data snapshot field count"
+    exit 1
+  fi
+  case "${prefix}" in
+    before)
+      before_accounts="$1"
+      before_inquiries="$2"
+      before_cms_entries="$3"
+      before_migrations="$4"
+      ;;
+    after)
+      after_accounts="$1"
+      after_inquiries="$2"
+      after_cms_entries="$3"
+      after_migrations="$4"
+      ;;
+    *)
+      echo "Invalid production data snapshot prefix: ${prefix}"
+      exit 1
+      ;;
+  esac
+  echo "${prefix} data snapshot: accounts=$1 inquiries=$2 cms_entries=$3 migrations=$4"
+}
+
+assert_protected_data_preserved() {
+  if [ "${after_accounts}" -lt "${before_accounts}" ] ||
+    [ "${after_inquiries}" -lt "${before_inquiries}" ] ||
+    [ "${after_cms_entries}" -lt "${before_cms_entries}" ] ||
+    [ "${after_migrations}" -lt "${before_migrations}" ]; then
+    echo "Refusing deployment: protected production data decreased during migration"
+    exit 1
+  fi
+  echo "Protected production data retained across migration"
+}
+
 login_acr() {
   login_attempt=1
   login_max_attempts=5
@@ -190,8 +263,13 @@ if ! compose -f "${DEPLOY_COMPOSE_FILE}" pull api; then
 fi
 reset_official_database
 compose -f "${DEPLOY_COMPOSE_FILE}" up -d postgres
+before_snapshot="$(protected_data_snapshot)"
+parse_protected_data_snapshot "${before_snapshot}" before
 compose -f "${DEPLOY_COMPOSE_FILE}" run --rm \
   api node apps/system/dist/migrate.js
+after_snapshot="$(protected_data_snapshot)"
+parse_protected_data_snapshot "${after_snapshot}" after
+assert_protected_data_preserved
 ensure_bootstrap_owner
 compose -f "${DEPLOY_COMPOSE_FILE}" up -d --remove-orphans api worker caddy
 cleanup_docker_space

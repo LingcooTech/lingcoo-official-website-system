@@ -25,11 +25,14 @@
     "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
     "test": "npm run build:packages && npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
-    "check": "npm run typecheck && npm test && npm run lint",
+    "check": "npm run frame:verify && npm run typecheck && npm test && npm run lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "frame:verify": "create-frame-app verify",
+    "frame:upgrade": "create-frame-app upgrade"
   },
   "devDependencies": {
+    "@lingcootech/create-frame-app": "0.7.2",
     "prettier": "^3.8.3",
     "typescript": "^5.9.3"
   },

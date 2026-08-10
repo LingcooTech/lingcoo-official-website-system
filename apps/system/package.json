@@ -15,9 +15,9 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@lingcootech/frame": "0.7.1",
-    "@lingcootech/frame-cms": "0.7.1",
-    "@lingcootech/frame-extension-sdk": "0.7.1",
+    "@lingcootech/frame": "0.7.2",
+    "@lingcootech/frame-cms": "0.7.2",
+    "@lingcootech/frame-extension-sdk": "0.7.2",
     "@lingcootech/official-site-extension": "*"
   },
   "devDependencies": {

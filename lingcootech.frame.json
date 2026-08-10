@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LingcooTech/lingcoo-system-base-framework/main/docs/application-manifest.schema.json",
+  "schemaVersion": 1,
+  "frameVersion": "0.7.2",
+  "channel": "preview",
+  "registry": "github",
+  "features": {
+    "cms": true,
+    "web": true
+  }
+}

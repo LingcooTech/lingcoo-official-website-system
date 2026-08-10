@@ -1,0 +1,122 @@
+name: Frame Upgrade
+
+on:
+  workflow_dispatch:
+    inputs:
+      frame_version:
+        description: Exact Frame version to install
+        required: true
+        type: string
+  push:
+    branches:
+      - 'frame-upgrade/**'
+
+permissions:
+  contents: write
+  packages: read
+  pull-requests: write
+
+concurrency:
+  group: frame-upgrade-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  upgrade:
+    if: >-
+      github.actor != 'github-actions[bot]' &&
+      !contains(github.event.head_commit.message, '[skip frame-upgrade]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: lingcoo_official_upgrade
+          POSTGRES_USER: lingcoo_official_upgrade
+          POSTGRES_PASSWORD: ci_only_password
+        ports:
+          - 5438:5432
+        options: >-
+          --health-cmd "pg_isready -U lingcoo_official_upgrade -d lingcoo_official_upgrade"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://lingcoo_official_upgrade:ci_only_password@localhost:5438/lingcoo_official_upgrade
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://npm.pkg.github.com
+          scope: '@lingcootech'
+
+      - name: Resolve and validate target version
+        id: target
+        shell: bash
+        env:
+          DISPATCH_VERSION: ${{ inputs.frame_version }}
+        run: |
+          target="${DISPATCH_VERSION}"
+          if [ -z "${target}" ]; then
+            target="${GITHUB_REF_NAME#frame-upgrade/}"
+          fi
+          if [[ ! "${target}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid exact Frame version: ${target}" >&2
+            exit 1
+          fi
+          echo "version=${target}" >> "${GITHUB_OUTPUT}"
+
+      - name: Install current application
+        run: npm ci
+
+      - name: Upgrade the complete Frame dependency set
+        shell: bash
+        env:
+          TARGET_VERSION: ${{ steps.target.outputs.version }}
+        run: |
+          npm pkg set "devDependencies.@lingcootech/create-frame-app=${TARGET_VERSION}"
+          npm pkg set "scripts.frame:verify=create-frame-app verify"
+          npm pkg set "scripts.frame:upgrade=create-frame-app upgrade"
+          npm pkg set "scripts.check=npm run frame:verify && npm run typecheck && npm test && npm run lint"
+          npx --yes --package="@lingcootech/create-frame-app@${TARGET_VERSION}" \
+            create-frame-app upgrade "${TARGET_VERSION}" .
+          npm ci
+
+      - run: npm run db:migrate
+      - run: npm run check
+      - run: npm run build:all
+      - run: npm audit --omit=dev --audit-level=high
+
+      - name: Commit upgrade and open pull request
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_VERSION: ${{ steps.target.outputs.version }}
+        run: |
+          branch="${GITHUB_REF_NAME}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            branch="frame-upgrade/${TARGET_VERSION}-${GITHUB_RUN_ID}"
+            git switch -c "${branch}"
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            package.json \
+            package-lock.json \
+            lingcootech.frame.json \
+            apps/*/package.json \
+            packages/*/package.json
+          git commit -m "chore: upgrade Frame to ${TARGET_VERSION}"
+          git push origin "HEAD:${branch}"
+          gh pr create \
+            --base main \
+            --head "${branch}" \
+            --title "chore: upgrade Frame to ${TARGET_VERSION}" \
+            --body "Automated full-set Frame upgrade. CI verifies an empty PostgreSQL migration, version consistency, tests, and production builds before merge." || \
+            echo "Upgrade branch pushed. Repository policy requires opening the pull request manually."
