@@ -11,11 +11,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@lingcootech/frame-cms": "0.7.1",
-    "@lingcootech/frame-design-tokens": "0.7.1",
-    "@lingcootech/frame-extension-sdk": "0.7.1",
-    "@lingcootech/frame-ui": "0.7.1",
-    "@lingcootech/frame-web": "0.7.1",
+    "@lingcootech/frame-cms": "0.7.2",
+    "@lingcootech/frame-design-tokens": "0.7.2",
+    "@lingcootech/frame-extension-sdk": "0.7.2",
+    "@lingcootech/frame-ui": "0.7.2",
+    "@lingcootech/frame-web": "0.7.2",
     "@lingcootech/official-site-extension": "*",
     "@tailwindcss/vite": "^4.1.18",
     "@vitejs/plugin-react": "^5.1.2",

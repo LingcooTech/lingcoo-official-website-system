@@ -33,11 +33,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@lingcootech/frame-admin": "0.7.1",
-    "@lingcootech/frame-database": "0.7.1",
-    "@lingcootech/frame-extension-sdk": "0.7.1",
-    "@lingcootech/frame-ui": "0.7.1",
-    "@lingcootech/frame-web": "0.7.1",
+    "@lingcootech/frame-admin": "0.7.2",
+    "@lingcootech/frame-database": "0.7.2",
+    "@lingcootech/frame-extension-sdk": "0.7.2",
+    "@lingcootech/frame-ui": "0.7.2",
+    "@lingcootech/frame-web": "0.7.2",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^0.503.0",
     "zod": "^4.1.11"

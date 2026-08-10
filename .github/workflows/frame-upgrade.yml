@@ -22,7 +22,9 @@ concurrency:
 
 jobs:
   upgrade:
-    if: github.actor != 'github-actions[bot]'
+    if: >-
+      github.actor != 'github-actions[bot]' &&
+      !contains(github.event.head_commit.message, '[skip frame-upgrade]')
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -104,11 +106,17 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json lingcootech.frame.json
+          git add \
+            package.json \
+            package-lock.json \
+            lingcootech.frame.json \
+            apps/*/package.json \
+            packages/*/package.json
           git commit -m "chore: upgrade Frame to ${TARGET_VERSION}"
           git push origin "HEAD:${branch}"
           gh pr create \
             --base main \
             --head "${branch}" \
             --title "chore: upgrade Frame to ${TARGET_VERSION}" \
-            --body "Automated full-set Frame upgrade. CI verifies an empty PostgreSQL migration, version consistency, tests, and production builds before merge."
+            --body "Automated full-set Frame upgrade. CI verifies an empty PostgreSQL migration, version consistency, tests, and production builds before merge." || \
+            echo "Upgrade branch pushed. Repository policy requires opening the pull request manually."
