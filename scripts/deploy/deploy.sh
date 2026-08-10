@@ -266,7 +266,7 @@ compose -f "${DEPLOY_COMPOSE_FILE}" up -d postgres
 before_snapshot="$(protected_data_snapshot)"
 parse_protected_data_snapshot "${before_snapshot}" before
 compose -f "${DEPLOY_COMPOSE_FILE}" run --rm \
-  api node apps/system/dist/migrate.js
+  api node apps/system/dist/migrate.js </dev/null
 after_snapshot="$(protected_data_snapshot)"
 parse_protected_data_snapshot "${after_snapshot}" after
 assert_protected_data_preserved
