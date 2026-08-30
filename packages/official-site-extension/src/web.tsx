@@ -27,6 +27,8 @@ import {
   OFFICIAL_SITE_ICP_URL,
   OFFICIAL_SITE_LEGAL_ENTITY,
   OFFICIAL_SITE_NAME,
+  OFFICIAL_SITE_PUBLIC_SECURITY_NUMBER,
+  OFFICIAL_SITE_PUBLIC_SECURITY_URL,
   officialFooterNavigation,
   officialHeaderNavigation,
   resolveOfficialPresentation,
@@ -182,6 +184,9 @@ function OfficialFooter({ presentation }: { presentation: PublicPresentation }) 
           <span>{OFFICIAL_SITE_LEGAL_ENTITY}</span>
           <a href={OFFICIAL_SITE_ICP_URL} rel="noreferrer" target="_blank">
             {OFFICIAL_SITE_ICP_NUMBER}
+          </a>
+          <a href={OFFICIAL_SITE_PUBLIC_SECURITY_URL} rel="noreferrer" target="_blank">
+            {OFFICIAL_SITE_PUBLIC_SECURITY_NUMBER}
           </a>
         </div>
       </Container>

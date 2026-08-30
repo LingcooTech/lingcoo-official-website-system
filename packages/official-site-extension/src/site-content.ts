@@ -6,6 +6,9 @@ export const OFFICIAL_SITE_SLOGAN = '让复杂系统，清晰生长';
 export const OFFICIAL_SITE_LEGAL_ENTITY = '青岛市市北区灵可天成智能科技工作室（个体工商户）';
 export const OFFICIAL_SITE_ICP_NUMBER = '鲁ICP备2026041221号-1';
 export const OFFICIAL_SITE_ICP_URL = 'https://beian.miit.gov.cn/';
+export const OFFICIAL_SITE_PUBLIC_SECURITY_NUMBER = '鲁公网安备37020302372685号';
+export const OFFICIAL_SITE_PUBLIC_SECURITY_URL =
+  'https://beian.mps.gov.cn/#/query/webSearch?code=37020302372685';
 
 export const officialHeaderNavigation = [
   { label: '首页', href: '/' },
